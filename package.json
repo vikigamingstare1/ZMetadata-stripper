@@ -1,0 +1,40 @@
+{
+  "name": "zmetadata-stripper",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@react-leaflet/core": "^3.0.0",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-fs": "^2",
+    "@tauri-apps/plugin-notification": "^2",
+    "@tauri-apps/plugin-shell": "^2.3.5",
+    "framer-motion": "^11",
+    "leaflet": "^1",
+    "lucide-react": "^1.11.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-dropzone": "^14",
+    "react-leaflet": "^5.0.0",
+    "zustand": "^5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "@tauri-apps/cli": "^2",
+    "@types/leaflet": "^1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "tailwindcss": "^4",
+    "typescript": "~5.8",
+    "vite": "^7"
+  }
+}
