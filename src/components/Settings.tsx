@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { open as dialogOpen } from "@tauri-apps/plugin-dialog";
 import { useSettingsStore } from "../store/useSettingsStore";
 import type { OutputMode } from "../types";
 
@@ -10,6 +11,11 @@ interface Props {
 export function Settings({ open, onClose }: Props) {
   const settings = useSettingsStore();
 
+  const pickOutputDir = async () => {
+    const dir = await dialogOpen({ multiple: false, directory: true });
+    if (dir) settings.setOutputDir(typeof dir === "string" ? dir : dir[0]);
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -17,17 +23,18 @@ export function Settings({ open, onClose }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 overflow-y-auto p-4"
           style={{ background: "rgba(8,8,15,0.75)", backdropFilter: "blur(8px)" }}
           onClick={onClose}
         >
+          <div className="flex min-h-full items-center justify-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.93, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 20 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
             onClick={(e) => e.stopPropagation()}
-            className="glass-card w-full max-w-lg p-6 shadow-2xl"
+            className="glass-card w-full max-w-lg p-6 shadow-2xl my-4"
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-base font-bold gradient-text">Settings</h2>
@@ -35,7 +42,6 @@ export function Settings({ open, onClose }: Props) {
             </div>
 
             <div className="flex flex-col gap-5">
-              {/* Theme */}
               <Section title="Appearance">
                 <Row label="Theme">
                   <Select
@@ -46,7 +52,6 @@ export function Settings({ open, onClose }: Props) {
                 </Row>
               </Section>
 
-              {/* Output */}
               <Section title="Output">
                 <Row label="Output mode">
                   <Select
@@ -59,12 +64,26 @@ export function Settings({ open, onClose }: Props) {
                     onChange={(v) => settings.setOutputMode(v as OutputMode)}
                   />
                 </Row>
+                {settings.outputMode === "CustomDir" && (
+                  <Row label="Output folder">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-slate-500 truncate max-w-[140px]">
+                        {settings.outputDir ?? "Not set"}
+                      </span>
+                      <button
+                        onClick={pickOutputDir}
+                        className="text-[10px] font-semibold text-violet-400 hover:text-violet-300 border border-violet-500/30 hover:border-violet-400/50 rounded-lg px-2.5 py-1 transition-all"
+                      >
+                        Browse…
+                      </button>
+                    </div>
+                  </Row>
+                )}
                 <Row label="Auto-backup before overwrite">
                   <Toggle value={settings.autoBackup} onChange={settings.setAutoBackup} />
                 </Row>
               </Section>
 
-              {/* Processing */}
               <Section title="Processing">
                 <Row label={`Threads (${settings.concurrency})`}>
                   <input
@@ -78,7 +97,6 @@ export function Settings({ open, onClose }: Props) {
                 </Row>
               </Section>
 
-              {/* System */}
               <Section title="System">
                 <Row label="Minimize to tray on close">
                   <Toggle value={settings.minimizeToTray} onChange={settings.setMinimizeToTray} />
@@ -86,6 +104,7 @@ export function Settings({ open, onClose }: Props) {
               </Section>
             </div>
           </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -123,10 +142,28 @@ function Select({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="bg-void-800 border border-void-700 text-slate-200 text-xs rounded-lg px-3 py-1.5 outline-none focus:border-violet-500 transition-colors"
+      style={{
+        background: "var(--theme-input-bg)",
+        color: "var(--theme-input-text)",
+        border: "1px solid rgba(109,40,217,0.35)",
+        borderRadius: "8px",
+        padding: "4px 10px",
+        fontSize: "0.75rem",
+        outline: "none",
+        appearance: "none",
+        WebkitAppearance: "none",
+        cursor: "pointer",
+        minWidth: "160px",
+      }}
     >
       {options.map(([val, label]) => (
-        <option key={val} value={val}>{label}</option>
+        <option
+          key={val}
+          value={val}
+          style={{ background: "var(--theme-input-bg)", color: "var(--theme-input-text)" }}
+        >
+          {label}
+        </option>
       ))}
     </select>
   );

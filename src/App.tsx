@@ -11,10 +11,28 @@ import { CommandPalette } from "./components/CommandPalette";
 import { Settings } from "./components/Settings";
 import { About } from "./components/About";
 import { ToastStack } from "./components/Toast";
+import { ContextMenu } from "./components/ContextMenu";
+import type { ContextMenuState } from "./components/ContextMenu";
 import { useQueueStore } from "./store/useQueueStore";
 import { useSettingsStore } from "./store/useSettingsStore";
 import { useToastStore } from "./store/useToastStore";
 import { stripFile, getStripOptions } from "./lib/tauri";
+import type { MetadataCategory, StripOptions } from "./types";
+
+function applyExclusions(opts: StripOptions, excluded: MetadataCategory[]): StripOptions {
+  const o = { ...opts };
+  for (const cat of excluded) {
+    if (cat === "Gps")        o.strip_gps = false;
+    if (cat === "Author")     o.strip_author = false;
+    if (cat === "Camera")     o.strip_camera = false;
+    if (cat === "Timestamps") o.strip_timestamps = false;
+    if (cat === "Software")   o.strip_icc = false;
+    if (cat === "Iptc")       o.strip_iptc = false;
+    if (cat === "Xmp")        o.strip_xmp = false;
+    if (cat === "Other")      { o.strip_makernotes = false; o.strip_thumbnail = false; }
+  }
+  return o;
+}
 
 type ResizeDir = "top"|"bottom"|"left"|"right"|"topLeft"|"topRight"|"bottomLeft"|"bottomRight";
 
@@ -32,9 +50,24 @@ const RESIZE_EDGES: { dir: ResizeDir; className: string }[] = [
 export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [ctxMenu, setCtxMenu] = useState<ContextMenuState | null>(null);
   const win = getCurrentWindow();
   const { files, updateFile, setProcessing, isProcessing } = useQueueStore();
-  const { activePresetId, outputMode, outputDir, concurrency } = useSettingsStore();
+  const { activePresetId, outputMode, outputDir, concurrency, theme } = useSettingsStore();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "system") {
+      const mq = window.matchMedia("(prefers-color-scheme: light)");
+      root.setAttribute("data-theme", mq.matches ? "light" : "dark");
+      const handler = (e: MediaQueryListEvent) =>
+        root.setAttribute("data-theme", e.matches ? "light" : "dark");
+      mq.addEventListener("change", handler);
+      return () => mq.removeEventListener("change", handler);
+    } else {
+      root.setAttribute("data-theme", theme);
+    }
+  }, [theme]);
   const { push: pushToast } = useToastStore();
 
   const handleStripAll = useCallback(async () => {
@@ -59,7 +92,8 @@ export default function App() {
         chunk.map(async (f) => {
           updateFile(f.id, { status: "processing", progress: 0 });
           try {
-            const result = await stripFile(f.path, opts);
+            const fileOpts = applyExclusions({ ...opts }, f.excludedCategories);
+            const result = await stripFile(f.path, fileOpts);
             if (result.success) {
               updateFile(f.id, {
                 status: "clean",
@@ -86,6 +120,34 @@ export default function App() {
     setProcessing(false);
   }, [files, activePresetId, outputMode, outputDir, concurrency, updateFile, setProcessing, pushToast]);
 
+  const handleStripSolo = useCallback(async (fileId: string) => {
+    const f = files.find((f) => f.id === fileId);
+    if (!f || f.status === "processing") return;
+    const opts = await getStripOptions(activePresetId);
+    opts.output_mode = outputMode;
+    opts.output_dir = outputDir;
+    updateFile(f.id, { status: "processing", progress: 0 });
+    try {
+      const soloOpts = applyExclusions({ ...opts }, f.excludedCategories);
+      const result = await stripFile(f.path, soloOpts);
+      if (result.success) {
+        updateFile(f.id, {
+          status: "clean", progress: 100,
+          metadataAfter: result.fields_kept,
+          fieldsInjected: result.fields_injected,
+          outputPath: result.output_path,
+          bytesSaved: result.bytes_saved,
+        });
+      } else {
+        updateFile(f.id, { status: "failed", error: result.error ?? "Unknown error" });
+        pushToast("error", `Failed: ${f.name}`);
+      }
+    } catch (e) {
+      updateFile(f.id, { status: "failed", error: String(e) });
+      pushToast("error", `${f.name}: ${String(e)}`);
+    }
+  }, [files, activePresetId, outputMode, outputDir, updateFile, pushToast]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") handleStripAll();
@@ -104,7 +166,7 @@ export default function App() {
           onMouseDown={() => win.startResizeDragging(dir as any)} />
       ))}
 
-      <Titlebar onAbout={() => setAboutOpen(true)} />
+      <Titlebar onAbout={() => setAboutOpen(true)} onSettings={() => setSettingsOpen(true)} />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <Sidebar />
@@ -121,7 +183,11 @@ export default function App() {
               <div className="flex flex-col gap-2">
                 <AnimatePresence>
                   {files.map((f) => (
-                    <QueueCard key={f.id} file={f} />
+                    <QueueCard
+                      key={f.id}
+                      file={f}
+                      onContextMenu={setCtxMenu}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -154,11 +220,17 @@ export default function App() {
         <MetadataPanel />
       </div>
 
-      <StatusBar />
+      <StatusBar onSettings={() => setSettingsOpen(true)} />
       <CommandPalette onStripAll={handleStripAll} onOpenSettings={() => setSettingsOpen(true)} />
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <About open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <ToastStack />
+      <ContextMenu
+        menu={ctxMenu}
+        onClose={() => setCtxMenu(null)}
+        onStripSolo={handleStripSolo}
+        onRemove={(id) => { const { removeFile } = useQueueStore.getState(); removeFile(id); setCtxMenu(null); }}
+      />
     </div>
   );
 }

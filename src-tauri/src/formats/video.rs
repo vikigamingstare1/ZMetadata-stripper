@@ -3,7 +3,6 @@ use std::path::Path;
 
 use crate::types::{MetadataCategory, MetadataField, RiskLevel};
 
-// ── MP4 / MOV / M4A ───────────────────────────────────────────────────────────
 
 pub fn inspect_mp4(path: &Path) -> Result<Vec<MetadataField>> {
     let tag = mp4ameta::Tag::read_from_path(path).context("Failed to read MP4 tag")?;
@@ -53,7 +52,7 @@ fn strip_atoms(src: &[u8], dst: &mut Vec<u8>, inside_moov: bool) -> Result<()> {
 
         let (hdr_len, atom_size) = read_atom_size(src, pos);
         if atom_size == 0 || pos + atom_size > src.len() {
-            // Last atom or corrupt — copy remainder verbatim
+
             dst.extend_from_slice(&src[pos..]);
             break;
         }
@@ -62,24 +61,24 @@ fn strip_atoms(src: &[u8], dst: &mut Vec<u8>, inside_moov: bool) -> Result<()> {
         let payload = &src[pos + hdr_len..pos + atom_size];
 
         match kind {
-            // Remove the entire user-data subtree (iTunes/QuickTime metadata)
+
             b"udta" => {}
 
-            // Recurse into container atoms
+
             b"moov" | b"trak" | b"mdia" | b"minf" | b"stbl" | b"edts" => {
                 let mut inner = Vec::new();
                 strip_atoms(payload, &mut inner, kind == b"moov" || inside_moov)?;
                 push_atom(dst, kind, hdr_len, &inner);
             }
 
-            // Zero creation & modification timestamps (MP4 epoch = Jan 1 1904)
+
             b"mvhd" | b"mdhd" => {
                 let mut patched = payload.to_vec();
                 patch_timestamps(&mut patched);
                 push_atom(dst, kind, hdr_len, &patched);
             }
 
-            // Copy everything else verbatim
+
             _ => {
                 dst.extend_from_slice(&src[pos..pos + atom_size]);
             }
@@ -94,7 +93,7 @@ fn strip_atoms(src: &[u8], dst: &mut Vec<u8>, inside_moov: bool) -> Result<()> {
 fn read_atom_size(src: &[u8], pos: usize) -> (usize, usize) {
     let raw = u32::from_be_bytes(src[pos..pos + 4].try_into().unwrap()) as usize;
     if raw == 1 {
-        // Extended 64-bit size
+
         if pos + 16 > src.len() {
             return (8, src.len() - pos);
         }
@@ -124,17 +123,16 @@ fn patch_timestamps(payload: &mut [u8]) {
     if payload.is_empty() { return; }
     let version = payload[0];
     if version == 0 && payload.len() >= 9 {
-        // version 0: creation(4) + modification(4) at offset 1
+
         payload[1..5].fill(0);
         payload[5..9].fill(0);
     } else if version == 1 && payload.len() >= 17 {
-        // version 1: creation(8) + modification(8) at offset 1
+
         payload[1..9].fill(0);
         payload[9..17].fill(0);
     }
 }
 
-// ── WAV ───────────────────────────────────────────────────────────────────────
 
 pub fn inspect_wav(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
@@ -209,14 +207,13 @@ fn wav_field_classify(tag: &str) -> (MetadataCategory, RiskLevel) {
     }
 }
 
-// ── MKV / WebM — best-effort ──────────────────────────────────────────────────
 
 /// MKV/WebM: strip the Segment → Tags element by zeroing its EBML ID.
 /// This is a best-effort approach without a full EBML parser.
 pub fn strip_mkv(mut data: Vec<u8>) -> Result<Vec<u8>> {
-    // EBML ID for Tags element: 0x1254C367 (big-endian)
+
     let tag_id: [u8; 4] = [0x12, 0x54, 0xC3, 0x67];
-    // Replace it with a Void element ID 0xEC so the data is ignored by players
+
     let void_id: [u8; 4] = [0xEC, 0, 0, 0];
 
     let mut i = 0;
@@ -231,9 +228,8 @@ pub fn strip_mkv(mut data: Vec<u8>) -> Result<Vec<u8>> {
 
 pub fn inspect_mkv(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
-    // Scan for common UTF-8 strings in MKV metadata elements
-    // Title EBML ID: 0x7BA9
-    // DateUTC EBML ID: 0x4461
+
+
     let s = std::str::from_utf8(data).unwrap_or("");
     if let Some(idx) = data.windows(2).position(|w| w == [0x7B, 0xA9]) {
         if let Some(end) = data[idx + 3..].iter().position(|&b| b == 0) {
@@ -248,7 +244,7 @@ pub fn inspect_mkv(data: &[u8]) -> Result<Vec<MetadataField>> {
             }
         }
     }
-    // WritingApp / MuxingApp appear as plain text in the segment
+
     for label in ["MuxingApp", "WritingApp", "Encoder"] {
         if s.contains(label) {
             fields.push(MetadataField {

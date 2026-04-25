@@ -69,11 +69,11 @@ export function About({ open, onClose }: Props) {
               boxShadow: "0 0 60px rgba(124,58,237,0.12), 0 24px 80px rgba(0,0,0,0.7)",
             }}
           >
-            {/* Gradient bleed top */}
+            {}
             <div className="absolute top-0 inset-x-0 h-32 pointer-events-none"
               style={{ background: "radial-gradient(ellipse at 50% -10%, rgba(124,58,237,0.18) 0%, transparent 70%)" }} />
 
-            {/* Close */}
+            {}
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-10 text-slate-600 hover:text-slate-300 transition-colors rounded-lg p-1 hover:bg-white/5"
@@ -83,7 +83,7 @@ export function About({ open, onClose }: Props) {
 
             <div className="relative p-7 flex flex-col gap-6">
 
-              {/* ── Hero ──────────────────────────────────────────── */}
+              {}
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
                   style={{ background: "linear-gradient(135deg,#7c3aed,#06b6d4)", boxShadow: "0 0 28px rgba(124,58,237,0.4)" }}>
@@ -109,7 +109,7 @@ export function About({ open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* ── Made by ───────────────────────────────────────── */}
+              {}
               <div>
                 <SectionLabel icon={<Code2 size={10} />} label="Made by" />
                 <div className="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-xl"
@@ -125,7 +125,7 @@ export function About({ open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* ── Tech stack ────────────────────────────────────── */}
+              {}
               <div>
                 <SectionLabel icon={<Layers size={10} />} label="Tech Stack" />
                 <div className="mt-2 flex flex-col gap-1.5">
@@ -148,7 +148,7 @@ export function About({ open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* ── Project map ───────────────────────────────────── */}
+              {}
               <div>
                 <SectionLabel icon={<Globe size={10} />} label="Project Map" />
                 <div className="mt-2 flex flex-col gap-1.5">
@@ -170,7 +170,7 @@ export function About({ open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* ── Footer ────────────────────────────────────────── */}
+              {}
               <div className="pt-1 border-t border-white/[0.05] flex items-center justify-between">
                 <p className="text-[9px] text-slate-700">
                   © 2024 TheHolyOneZ — Released under GPL-3.0

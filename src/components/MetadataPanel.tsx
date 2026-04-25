@@ -2,12 +2,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, User, Camera, Clock, Cpu, FileText, Tag, MoreHorizontal,
-  ChevronDown, ChevronRight, AlertTriangle, Zap, CheckCircle2, Shield,
+  ChevronDown, ChevronRight, AlertTriangle, Zap, CheckCircle2, Shield, EyeOff,
 } from "lucide-react";
 import { useQueueStore } from "../store/useQueueStore";
 import type { MetadataCategory, MetadataField, RiskLevel } from "../types";
 
-// ── Metadata per category ──────────────────────────────────────────────────
+
 const CAT_META: Record<MetadataCategory, { icon: React.ReactNode; label: string }> = {
   Gps:        { icon: <MapPin size={11} />,         label: "GPS Location" },
   Author:     { icon: <User size={11} />,           label: "Author / Identity" },
@@ -47,18 +47,17 @@ function groupByCategory(fields: MetadataField[]) {
   return map;
 }
 
-// ── Main component ─────────────────────────────────────────────────────────
+
 export function MetadataPanel() {
-  const { files, activeFileId } = useQueueStore();
+  const { files, activeFileId, toggleCategory } = useQueueStore();
   const file = files.find((f) => f.id === activeFileId);
   const [tab, setTab] = useState<"before" | "after">("before");
-  // all categories open by default
   const [collapsed, setCollapsed] = useState<Set<MetadataCategory>>(new Set());
 
   const toggle = (cat: MetadataCategory) =>
     setCollapsed((p) => { const n = new Set(p); n.has(cat) ? n.delete(cat) : n.add(cat); return n; });
 
-  // ── No file selected ──────────────────────────────────────────────────
+
   if (!file) {
     return (
       <aside className="w-[340px] shrink-0 relative border-l border-white/5"
@@ -79,18 +78,15 @@ export function MetadataPanel() {
   const groups = groupByCategory(fields);
   const gpsFields = file.metadataBefore.filter((f) => f.category === "Gps");
 
-  // ── Panel ──────────────────────────────────────────────────────────────
+
   return (
     <aside className="w-[340px] shrink-0 relative border-l border-white/5"
       style={{ background: "#09090f" }}>
 
-      {/*
-        absolute inset-0 → fills the aside exactly regardless of flex quirks,
-        giving a definite height that overflow-y-auto can scroll within.
-      */}
+      {}
       <div className="absolute inset-0 flex flex-col overflow-hidden">
 
-        {/* ── Fixed header ────────────────────────────────────── */}
+        {}
         <div className="shrink-0 px-4 pt-4 pb-3 border-b border-white/[0.06]">
           <p className="text-[11px] font-semibold text-slate-200 truncate leading-tight">
             {file.name}
@@ -99,7 +95,7 @@ export function MetadataPanel() {
             {file.format}&nbsp;·&nbsp;{file.path}
           </p>
 
-          {/* Tab bar */}
+          {}
           <div className="flex gap-1 mt-3 p-1 rounded-xl bg-black/40">
             {(["before", "after"] as const).map((t) => (
               <button key={t} onClick={() => setTab(t)}
@@ -112,11 +108,11 @@ export function MetadataPanel() {
           </div>
         </div>
 
-        {/* ── Scrollable body ─────────────────────────────────── */}
+        {}
         <div className="flex-1 overflow-y-auto min-h-0" style={{ overflowY: "auto" }}>
           <div className="flex flex-col gap-2 p-3">
 
-            {/* GPS danger banner */}
+            {}
             <AnimatePresence>
               {tab === "before" && gpsFields.length > 0 && (
                 <motion.div key="gps"
@@ -139,7 +135,7 @@ export function MetadataPanel() {
               )}
             </AnimatePresence>
 
-            {/* Injected fields */}
+            {}
             <AnimatePresence>
               {tab === "after" && file.fieldsInjected.length > 0 && (
                 <motion.div key="injected"
@@ -160,7 +156,7 @@ export function MetadataPanel() {
               )}
             </AnimatePresence>
 
-            {/* Clean result */}
+            {}
             <AnimatePresence>
               {tab === "after" && file.status === "clean" && file.outputPath && (
                 <motion.div key="clean"
@@ -183,7 +179,7 @@ export function MetadataPanel() {
               )}
             </AnimatePresence>
 
-            {/* Empty state */}
+            {}
             {fields.length === 0 && (
               <div className="rounded-xl p-6 border border-white/[0.04] text-center shrink-0">
                 <p className="text-[11px] text-slate-600">
@@ -196,28 +192,44 @@ export function MetadataPanel() {
               </div>
             )}
 
-            {/* Category groups */}
+            {}
             {CAT_ORDER.filter((cat) => groups[cat]).map((cat) => {
               const catFields = groups[cat]!;
               const open = !collapsed.has(cat);
+              const excluded = tab === "before" && file.excludedCategories.includes(cat);
               const { icon, label } = CAT_META[cat];
 
               return (
-                <div key={cat} className="rounded-xl border border-white/[0.06] overflow-hidden shrink-0"
-                  style={{ background: "rgba(14,14,22,0.9)" }}>
+                <div key={cat}
+                  className="rounded-xl border overflow-hidden shrink-0 transition-colors"
+                  style={{
+                    background: excluded ? "rgba(239,68,68,0.04)" : "rgba(14,14,22,0.9)",
+                    borderColor: excluded ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.06)",
+                  }}>
 
-                  {/* Category header – click to collapse */}
-                  <button onClick={() => toggle(cat)}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-white/[0.03] transition-colors">
-                    <span className="text-slate-500 shrink-0">{icon}</span>
-                    <span className="text-[11px] font-semibold text-slate-300 flex-1 text-left">{label}</span>
-                    <span className="text-[9px] font-mono text-slate-600 mr-1">{catFields.length}</span>
-                    {open
-                      ? <ChevronDown size={11} className="text-slate-600 shrink-0" />
-                      : <ChevronRight size={11} className="text-slate-600 shrink-0" />}
-                  </button>
+                  {}
+                  <div className="flex items-center">
+                    <button onClick={() => toggle(cat)}
+                      className="flex-1 flex items-center gap-2 px-3 py-2.5 hover:bg-white/[0.03] transition-colors">
+                      <span className={`shrink-0 ${excluded ? "text-red-500/50" : "text-slate-500"}`}>{icon}</span>
+                      <span className={`text-[11px] font-semibold flex-1 text-left ${excluded ? "line-through text-slate-600" : "text-slate-300"}`}>{label}</span>
+                      <span className="text-[9px] font-mono text-slate-600 mr-1">{catFields.length}</span>
+                      {open
+                        ? <ChevronDown size={11} className="text-slate-600 shrink-0" />
+                        : <ChevronRight size={11} className="text-slate-600 shrink-0" />}
+                    </button>
+                    {tab === "before" && (
+                      <button
+                        title={excluded ? "Include in strip" : "Exclude from strip"}
+                        onClick={() => toggleCategory(file.id, cat)}
+                        className={`px-2.5 py-2.5 transition-colors shrink-0 ${excluded ? "text-red-400 hover:text-red-300" : "text-slate-700 hover:text-slate-400"}`}
+                      >
+                        <EyeOff size={10} />
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Collapsible field list */}
+                  {}
                   <AnimatePresence initial={false}>
                     {open && (
                       <motion.div
@@ -239,7 +251,7 @@ export function MetadataPanel() {
               );
             })}
 
-            {/* Bottom breathing room */}
+            {}
             <div className="h-4 shrink-0" />
           </div>
         </div>
@@ -248,7 +260,7 @@ export function MetadataPanel() {
   );
 }
 
-// ── Field row ──────────────────────────────────────────────────────────────
+
 function FieldRow({ field }: { field: MetadataField }) {
   return (
     <div className="rounded-lg px-2.5 py-2 flex items-start gap-2.5 mt-1"

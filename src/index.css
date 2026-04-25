@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Deep Void palette */
+
   --color-void-950: #08080f;
   --color-void-900: #0f0f1a;
   --color-void-800: #141425;
@@ -21,28 +21,54 @@
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
-/* ── Base ──────────────────────────────────────────────── */
+
+:root {
+  --theme-bg:          #08080f;
+  --theme-surface:     rgba(15,15,26,0.85);
+  --theme-text:        #f1f5f9;
+  --theme-text2:       #94a3b8;
+  --theme-text3:       #475569;
+  --theme-border:      rgba(109,40,217,0.18);
+  --theme-border-sub:  rgba(255,255,255,0.05);
+  --theme-input-bg:    #141425;
+  --theme-input-text:  #f1f5f9;
+}
+
+html[data-theme="light"] {
+  --theme-bg:          #f0f0f8;
+  --theme-surface:     rgba(255,255,255,0.92);
+  --theme-text:        #18182a;
+  --theme-text2:       #4a4a6a;
+  --theme-text3:       #8080a0;
+  --theme-border:      rgba(109,40,217,0.22);
+  --theme-border-sub:  rgba(0,0,0,0.07);
+  --theme-input-bg:    #e8e8f4;
+  --theme-input-text:  #18182a;
+}
+
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: var(--color-void-950);
-  color: #f1f5f9;
+  background: var(--theme-bg);
+  color: var(--theme-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   user-select: none;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
-/* ── Glassmorphism bento card ──────────────────────────── */
+
 .glass-card {
-  background: rgba(15, 15, 26, 0.85);
+  background: var(--theme-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(109, 40, 217, 0.18);
+  border: 1px solid var(--theme-border);
   border-radius: 16px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.25s ease;
 }
 
 .glass-card:hover {
@@ -55,7 +81,7 @@ html, body, #root {
   box-shadow: 0 0 28px rgba(124, 58, 237, 0.18) !important;
 }
 
-/* ── Gradient accent ───────────────────────────────────── */
+
 .gradient-accent {
   background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
 }
@@ -67,7 +93,7 @@ html, body, #root {
   background-clip: text;
 }
 
-/* ── Drop zone glow ring ───────────────────────────────── */
+
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 16px rgba(124, 58, 237, 0.25); border-color: rgba(124, 58, 237, 0.3); }
   50%       { box-shadow: 0 0 32px rgba(124, 58, 237, 0.5);  border-color: rgba(124, 58, 237, 0.6); }
@@ -79,13 +105,13 @@ html, body, #root {
   border-color: rgba(124, 58, 237, 1) !important;
 }
 
-/* ── Scrollbar ─────────────────────────────────────────── */
+
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(109, 40, 217, 0.4); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.7); }
 
-/* ── Status pills ──────────────────────────────────────── */
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -98,7 +124,7 @@ html, body, #root {
   border: 1px solid;
 }
 
-/* ── Wipe animation overlay ───────────────────────────── */
+
 @keyframes wipe-through {
   0%   { transform: translateX(-100%); opacity: 0.8; }
   100% { transform: translateX(200%);  opacity: 0; }
@@ -111,5 +137,5 @@ html, body, #root {
   border-radius: inherit;
 }
 
-/* ── Mono text ─────────────────────────────────────────── */
+
 .mono { font-family: var(--font-mono); }

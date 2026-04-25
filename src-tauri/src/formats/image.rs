@@ -6,7 +6,6 @@ use std::io::Cursor;
 
 use crate::types::{MetadataCategory, MetadataField, RiskLevel, StripOptions};
 
-// ── JPEG ───────────────────────────────────────────────────────────────────────
 
 const APP1: u8 = 0xE1;
 const APP2: u8 = 0xE2;
@@ -25,7 +24,7 @@ pub fn inspect_jpeg(data: &[u8]) -> Result<Vec<MetadataField>> {
         }
     }
 
-    // Scan for XMP in APP1 segments
+
     if let Ok(jpeg) = Jpeg::from_bytes(Bytes::from(data.to_vec())) {
         for seg in jpeg.segments() {
             if seg.marker() == APP1 {
@@ -56,7 +55,7 @@ pub fn strip_jpeg(data: Vec<u8>, opts: &StripOptions) -> Result<Vec<u8>> {
     let mut jpeg = Jpeg::from_bytes(b).context("Failed to parse JPEG")?;
 
     jpeg.segments_mut().retain(|seg| match seg.marker() {
-        APP1  => false,              // strips both EXIF and XMP
+        APP1  => false,
         APP2  => !opts.strip_icc,
         APP13 => !opts.strip_iptc,
         COM   => !opts.strip_author,
@@ -105,7 +104,6 @@ fn ifd_entry(tag: u16, typ: u16, count: u32, val: [u8; 4]) -> [u8; 12] {
     e
 }
 
-// ── PNG ────────────────────────────────────────────────────────────────────────
 
 pub fn inspect_png(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
@@ -169,13 +167,12 @@ pub fn strip_png(data: Vec<u8>, opts: &StripOptions) -> Result<Vec<u8>> {
     Ok(out)
 }
 
-// ── WebP ───────────────────────────────────────────────────────────────────────
 
 pub fn inspect_webp(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
     if data.len() < 12 { return Ok(fields); }
 
-    let mut pos = 12usize; // skip RIFF header
+    let mut pos = 12usize;
     while pos + 8 <= data.len() {
         let kind = &data[pos..pos + 4];
         let size = u32::from_le_bytes(data[pos + 4..pos + 8].try_into().unwrap()) as usize;
@@ -227,7 +224,7 @@ pub fn inspect_webp(data: &[u8]) -> Result<Vec<MetadataField>> {
 pub fn strip_webp(data: Vec<u8>, opts: &StripOptions) -> Result<Vec<u8>> {
     if data.len() < 12 { return Ok(data); }
 
-    let mut output = data[..12].to_vec(); // Keep RIFF + size + "WEBP"
+    let mut output = data[..12].to_vec();
     let mut pos = 12usize;
 
     while pos + 8 <= data.len() {
@@ -254,10 +251,9 @@ pub fn strip_webp(data: Vec<u8>, opts: &StripOptions) -> Result<Vec<u8>> {
     Ok(output)
 }
 
-// ── TIFF / GIF / BMP — re-encode via `image` crate ───────────────────────────
 
 pub fn inspect_tiff(data: &[u8]) -> Result<Vec<MetadataField>> {
-    // TIFF stores metadata in EXIF-compatible IFD tags
+
     let mut fields = Vec::new();
     if let Ok(exif) = exif::Reader::new().read_from_container(&mut Cursor::new(data)) {
         for f in exif.fields() {
@@ -299,12 +295,12 @@ pub fn strip_gif(data: Vec<u8>) -> Result<Vec<u8>> {
 
 pub fn inspect_gif(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
-    // GIF comment extensions: extension 0x21 0xFE
-    let mut pos = 6usize; // skip GIF header
+
+    let mut pos = 6usize;
     if data.len() < 6 { return Ok(fields); }
     while pos + 2 < data.len() {
         if data[pos] == 0x21 && data[pos + 1] == 0xFE {
-            // Comment extension
+
             pos += 2;
             let mut comment = Vec::new();
             while pos < data.len() {
@@ -328,14 +324,12 @@ pub fn inspect_gif(data: &[u8]) -> Result<Vec<MetadataField>> {
     Ok(fields)
 }
 
-// ── Thumbnail ─────────────────────────────────────────────────────────────────
 
 pub fn thumbnail_b64(data: &[u8]) -> Option<String> {
-    // Return first 64 KB as base64 for UI preview (browser shows data: URI)
+
     Some(STANDARD.encode(&data[..data.len().min(65536)]))
 }
 
-// ── Field classification ───────────────────────────────────────────────────────
 
 pub fn classify_field(name: &str, value: &str) -> (MetadataCategory, RiskLevel) {
     let n = name.to_lowercase();
@@ -388,7 +382,6 @@ pub fn classify_field(name: &str, value: &str) -> (MetadataCategory, RiskLevel) 
     (MetadataCategory::Other, RiskLevel::Low)
 }
 
-// ── XMP helpers ───────────────────────────────────────────────────────────────
 
 fn extract_xmp_value(xmp: &str, key: &str) -> Option<String> {
     let start = xmp.find(&format!("<{}", key))?;

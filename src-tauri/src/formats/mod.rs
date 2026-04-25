@@ -8,7 +8,7 @@ use std::path::Path;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileFormat {
-    // Raster images
+
     Jpeg,
     Png,
     Webp,
@@ -17,7 +17,7 @@ pub enum FileFormat {
     Bmp,
     Avif,
     Heic,
-    // Documents
+
     Pdf,
     Docx,
     Xlsx,
@@ -26,23 +26,23 @@ pub enum FileFormat {
     Ods,
     Odp,
     Rtf,
-    // Audio
+
     Mp3,
     Flac,
     Ogg,
     Wav,
     M4a,
     Aiff,
-    // Video
+
     Mp4,
     Mov,
     Mkv,
     Webm,
     Avi,
-    // Vector / text
+
     Svg,
     Eps,
-    // Unknown
+
     Unknown,
 }
 
@@ -89,7 +89,6 @@ impl FileFormat {
     }
 }
 
-// ── Detection ─────────────────────────────────────────────────────────────────
 
 /// Detect format from magic bytes first, fall back to file extension.
 pub fn detect_format(path: &Path, header: &[u8]) -> FileFormat {
@@ -103,23 +102,23 @@ pub fn detect_format(path: &Path, header: &[u8]) -> FileFormat {
 pub fn detect_by_magic(h: &[u8]) -> FileFormat {
     let h32 = &h[..h.len().min(32)];
 
-    // JPEG: FF D8 FF
+
     if h32.starts_with(b"\xFF\xD8\xFF") { return FileFormat::Jpeg; }
-    // PNG:  89 50 4E 47 0D 0A 1A 0A
+
     if h32.starts_with(b"\x89PNG\r\n\x1A\n") { return FileFormat::Png; }
-    // TIFF: little-endian II 2A 00  or  big-endian MM 00 2A
+
     if h32.starts_with(b"II\x2A\x00") || h32.starts_with(b"MM\x00\x2A") { return FileFormat::Tiff; }
-    // GIF
+
     if h32.starts_with(b"GIF87a") || h32.starts_with(b"GIF89a") { return FileFormat::Gif; }
-    // BMP
+
     if h32.starts_with(b"BM") { return FileFormat::Bmp; }
-    // PDF
+
     if h32.starts_with(b"%PDF") { return FileFormat::Pdf; }
-    // FLAC
+
     if h32.starts_with(b"fLaC") { return FileFormat::Flac; }
-    // OGG (Vorbis/FLAC/Opus)
+
     if h32.starts_with(b"OggS") { return FileFormat::Ogg; }
-    // MP3: ID3 tag  or  raw sync frame FF FB / FF F3 / FF F2
+
     if h32.starts_with(b"ID3")
         || h32.starts_with(b"\xFF\xFB")
         || h32.starts_with(b"\xFF\xF3")
@@ -128,12 +127,12 @@ pub fn detect_by_magic(h: &[u8]) -> FileFormat {
     {
         return FileFormat::Mp3;
     }
-    // RTF
+
     if h32.starts_with(b"{\\rtf") { return FileFormat::Rtf; }
-    // SVG / XML
+
     if h32.starts_with(b"<?xml") || h32.starts_with(b"<svg") { return detect_xml_type(h); }
 
-    // RIFF container — inspect the form-type field at [8..12]
+
     if h32.starts_with(b"RIFF") {
         return match h32.get(8..12) {
             Some(b"WEBP") => FileFormat::Webp,
@@ -142,18 +141,18 @@ pub fn detect_by_magic(h: &[u8]) -> FileFormat {
             _ => FileFormat::Unknown,
         };
     }
-    // AIFF / AIFF-C
+
     if h32.starts_with(b"FORM") && (h32.get(8..12) == Some(b"AIFF") || h32.get(8..12) == Some(b"AIFC")) {
         return FileFormat::Aiff;
     }
 
-    // EBML — MKV / WebM
+
     if h32.starts_with(b"\x1A\x45\xDF\xA3") { return detect_ebml_type(h); }
 
-    // ZIP-based (DOCX / XLSX / PPTX / ODT / …)
+
     if h32.starts_with(b"PK\x03\x04") { return detect_zip_type(h); }
 
-    // MP4 / MOV — ftyp box: 4-byte size + b"ftyp"
+
     if h32.get(4..8) == Some(b"ftyp") { return detect_mp4_type(h); }
 
     FileFormat::Unknown
@@ -172,7 +171,7 @@ fn detect_ebml_type(h: &[u8]) -> FileFormat {
 }
 
 fn detect_mp4_type(h: &[u8]) -> FileFormat {
-    // ftyp major brand at offset 8..12
+
     match h.get(8..12) {
         Some(b"M4A ") | Some(b"M4B ") | Some(b"M4P ") | Some(b"M4V ") => FileFormat::M4a,
         Some(b"qt  ") => FileFormat::Mov,
@@ -182,7 +181,7 @@ fn detect_mp4_type(h: &[u8]) -> FileFormat {
 }
 
 fn detect_zip_type(h: &[u8]) -> FileFormat {
-    // Peek inside the ZIP to find known files
+
     use std::io::Cursor;
     if let Ok(mut a) = zip::ZipArchive::new(Cursor::new(h)) {
         for i in 0..a.len() {

@@ -29,3 +29,6 @@ export const getPresets = (): Promise<{ id: string; label: string; description: 
 
 export const getStripOptions = (presetId: string): Promise<StripOptions> =>
   invoke("get_strip_options", { presetId });
+
+export const scanFolder = (path: string): Promise<string[]> =>
+  invoke("scan_folder", { path });

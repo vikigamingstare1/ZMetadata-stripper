@@ -4,7 +4,6 @@ use std::path::Path;
 
 use crate::types::{MetadataCategory, MetadataField, RiskLevel, StripOptions};
 
-// ── MP3 (ID3) ─────────────────────────────────────────────────────────────────
 
 pub fn inspect_mp3(path: &Path) -> Result<Vec<MetadataField>> {
     let tag = id3::Tag::read_from_path(path).context("Failed to read ID3 tag")?;
@@ -62,7 +61,6 @@ pub fn strip_mp3(path: &Path, _opts: &StripOptions) -> Result<()> {
     Ok(())
 }
 
-// ── FLAC ──────────────────────────────────────────────────────────────────────
 
 pub fn inspect_flac(path: &Path) -> Result<Vec<MetadataField>> {
     let tag = metaflac::Tag::read_from_path(path).context("Failed to read FLAC tag")?;
@@ -82,7 +80,7 @@ pub fn inspect_flac(path: &Path) -> Result<Vec<MetadataField>> {
         }
     }
 
-    // Count embedded pictures
+
     let pics: Vec<_> = tag.pictures().collect();
     if !pics.is_empty() {
         fields.push(MetadataField {
@@ -104,11 +102,10 @@ pub fn strip_flac(path: &Path, _opts: &StripOptions) -> Result<()> {
     Ok(())
 }
 
-// ── OGG Vorbis — strip comment header ─────────────────────────────────────────
 
 pub fn inspect_ogg(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
-    // Parse Vorbis comment header from the second OGG page
+
     if let Some(comments) = parse_vorbis_comments(data) {
         for (key, val) in comments {
             let (cat, risk) = classify_audio_field(&key);
@@ -119,17 +116,15 @@ pub fn inspect_ogg(data: &[u8]) -> Result<Vec<MetadataField>> {
 }
 
 pub fn strip_ogg(data: Vec<u8>) -> Result<Vec<u8>> {
-    // Replace the Vorbis comment header with an empty one.
-    // The comment header is identified by the 7-byte prefix:
-    //   0x03 "vorbis" (for Vorbis streams)
-    //   0x05 "vorbis" for Opus → use "OpusTags"
+
+
     let comment_marker_v = b"\x03vorbis";
     let comment_marker_o = b"OpusTags";
 
     let mut out = data.clone();
     let mut found = false;
 
-    // Search for Vorbis comment packet start
+
     for window_start in 0..out.len().saturating_sub(7) {
         if out[window_start..].starts_with(comment_marker_v) {
             overwrite_vorbis_comment(&mut out, window_start, 7);
@@ -144,7 +139,7 @@ pub fn strip_ogg(data: Vec<u8>) -> Result<Vec<u8>> {
     }
 
     if !found {
-        return Ok(data); // Couldn't parse — return unchanged
+        return Ok(data);
     }
 
     Ok(out)
@@ -153,14 +148,14 @@ pub fn strip_ogg(data: Vec<u8>) -> Result<Vec<u8>> {
 fn overwrite_vorbis_comment(data: &mut Vec<u8>, start: usize, prefix_len: usize) {
     let pos = start + prefix_len;
     if pos + 4 > data.len() { return; }
-    // vendor string length (LE u32) → replace with "ZScrub"
+
     let vendor = b"ZScrub";
     let vendor_len = vendor.len() as u32;
     if pos + 4 > data.len() { return; }
     data[pos..pos + 4].copy_from_slice(&vendor_len.to_le_bytes());
     if pos + 4 + vendor.len() + 4 > data.len() { return; }
     data[pos + 4..pos + 4 + vendor.len()].copy_from_slice(vendor);
-    // comment count → 0
+
     let count_pos = pos + 4 + vendor.len();
     if count_pos + 4 <= data.len() {
         data[count_pos..count_pos + 4].fill(0);
@@ -171,7 +166,6 @@ fn overwrite_opus_tags(data: &mut Vec<u8>, start: usize, prefix_len: usize) {
     overwrite_vorbis_comment(data, start, prefix_len);
 }
 
-// ── AIFF ──────────────────────────────────────────────────────────────────────
 
 pub fn inspect_aiff(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
@@ -235,13 +229,12 @@ pub fn strip_aiff(data: Vec<u8>) -> Result<Vec<u8>> {
         pos = end;
     }
 
-    // Update FORM size
+
     let new_size = (out.len() - 8) as u32;
     out[4..8].copy_from_slice(&new_size.to_be_bytes());
     Ok(out)
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 fn parse_vorbis_comments(data: &[u8]) -> Option<Vec<(String, String)>> {
     let marker = b"\x03vorbis";

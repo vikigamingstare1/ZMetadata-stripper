@@ -38,6 +38,7 @@ export interface QueueFile {
   metadataBefore: MetadataField[];
   metadataAfter: MetadataField[];
   fieldsInjected: MetadataField[];
+  excludedCategories: MetadataCategory[];
   thumbnail?: string;
   outputPath?: string;
   bytesSaved?: number;

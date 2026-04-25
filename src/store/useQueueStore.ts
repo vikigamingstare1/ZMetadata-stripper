@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { QueueFile } from "../types";
+import type { MetadataCategory, QueueFile } from "../types";
 
 interface QueueStore {
   files: QueueFile[];
@@ -12,6 +12,7 @@ interface QueueStore {
   clearQueue: () => void;
   reorderFiles: (fromIndex: number, toIndex: number) => void;
   setProcessing: (v: boolean) => void;
+  toggleCategory: (fileId: string, cat: MetadataCategory) => void;
 }
 
 export const useQueueStore = create<QueueStore>((set) => ({
@@ -51,4 +52,18 @@ export const useQueueStore = create<QueueStore>((set) => ({
     }),
 
   setProcessing: (v) => set({ isProcessing: v }),
+
+  toggleCategory: (fileId, cat) =>
+    set((s) => ({
+      files: s.files.map((f) => {
+        if (f.id !== fileId) return f;
+        const has = f.excludedCategories.includes(cat);
+        return {
+          ...f,
+          excludedCategories: has
+            ? f.excludedCategories.filter((c) => c !== cat)
+            : [...f.excludedCategories, cat],
+        };
+      }),
+    })),
 }));

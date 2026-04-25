@@ -1,3 +1,4 @@
+import { Settings } from "lucide-react";
 import { useQueueStore } from "../store/useQueueStore";
 
 function fmt(bytes: number) {
@@ -6,7 +7,7 @@ function fmt(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export function StatusBar() {
+export function StatusBar({ onSettings }: { onSettings: () => void }) {
   const files = useQueueStore((s) => s.files);
 
   const total = files.length;
@@ -53,6 +54,13 @@ export function StatusBar() {
 
       <div className="flex items-center gap-3">
         <span className="text-slate-600">pnpm · Tauri v2 · Rust</span>
+        <button
+          onClick={onSettings}
+          className="flex items-center gap-1.5 text-slate-600 hover:text-slate-300 transition-colors rounded px-1.5 py-0.5 hover:bg-white/5"
+          title="Settings (Ctrl+,)"
+        >
+          <Settings size={11} />
+        </button>
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Ready" />
       </div>
     </div>

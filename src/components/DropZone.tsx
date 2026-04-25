@@ -3,10 +3,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { listen } from "@tauri-apps/api/event";
 import { open as dialogOpen } from "@tauri-apps/plugin-dialog";
 import { useQueueStore } from "../store/useQueueStore";
-import { inspectFile } from "../lib/tauri";
+import { inspectFile, scanFolder } from "../lib/tauri";
 import type { QueueFile } from "../types";
 
-// Normalize paths — Tauri v2 on Linux sometimes gives file:// URIs
+const SUPPORTED_EXTS = new Set([
+  "jpg","jpeg","png","webp","tiff","tif","gif","bmp","avif","heic","heif",
+  "pdf","docx","xlsx","pptx","odt","ods","odp","rtf","svg",
+  "mp3","flac","ogg","wav","wave","aiff","aif","m4a",
+  "mp4","mov","mkv","webm",
+]);
+
+
 function normalizePath(p: string): string {
   if (p.startsWith("file://")) {
     return decodeURIComponent(p.slice(7));
@@ -30,6 +37,7 @@ function makeQueueFile(rawPath: string): QueueFile {
     metadataBefore: [],
     metadataAfter: [],
     fieldsInjected: [],
+    excludedCategories: [],
   };
 }
 
@@ -39,7 +47,22 @@ export function DropZone() {
 
   const enqueuePaths = useCallback(
     async (rawPaths: string[]) => {
-      const newFiles = rawPaths.map(makeQueueFile);
+
+      const expanded: string[] = [];
+      for (const raw of rawPaths) {
+        const p = normalizePath(raw);
+        const ext = p.split(".").pop()?.toLowerCase() ?? "";
+        if (!SUPPORTED_EXTS.has(ext)) {
+
+          try {
+            const files = await scanFolder(p);
+            expanded.push(...files);
+          } catch {  }
+        } else {
+          expanded.push(p);
+        }
+      }
+      const newFiles = expanded.map(makeQueueFile);
       addFiles(newFiles);
       if (newFiles[0]) setActiveFile(newFiles[0].id);
 
@@ -63,9 +86,9 @@ export function DropZone() {
     [addFiles, updateFile, setActiveFile]
   );
 
-  // Tauri v2 drag-drop events (Linux/Windows/macOS)
+
   useEffect(() => {
-    // Tauri v2 renamed: file-drop → drag-drop, file-drop-hover → drag-over, file-drop-cancelled → drag-leave
+
     const unlisten = listen<{ paths: string[] }>("tauri://drag-drop", (ev) => {
       enqueuePaths(ev.payload.paths);
       setDraggingOver(false);
@@ -80,21 +103,29 @@ export function DropZone() {
     };
   }, [enqueuePaths]);
 
-  // Click-to-browse: use Tauri dialog (gives real absolute paths, works on all platforms)
   const handleClick = useCallback(async () => {
     const selected = await dialogOpen({
       multiple: true,
+      directory: false,
       filters: [
         { name: "Images", extensions: ["jpg","jpeg","png","webp","tiff","tif","gif","bmp","avif","heic","heif","svg"] },
         { name: "Documents", extensions: ["pdf","docx","xlsx","pptx","odt","ods","odp","rtf"] },
-        { name: "Audio", extensions: ["mp3","flac","ogg","oga","opus","wav","wave","m4a","aiff","aif"] },
-        { name: "Video", extensions: ["mp4","mov","mkv","webm","m4v"] },
+        { name: "Audio", extensions: ["mp3","flac","ogg","wav","wave","m4a","aiff","aif"] },
+        { name: "Video", extensions: ["mp4","mov","mkv","webm"] },
         { name: "All Files", extensions: ["*"] },
       ],
     });
     if (!selected) return;
     const paths = Array.isArray(selected) ? selected : [selected];
     enqueuePaths(paths);
+  }, [enqueuePaths]);
+
+  const handleFolderClick = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const selected = await dialogOpen({ multiple: false, directory: true });
+    if (!selected) return;
+    const p = typeof selected === "string" ? selected : selected[0];
+    enqueuePaths([p]);
   }, [enqueuePaths]);
 
   return (
@@ -137,16 +168,19 @@ export function DropZone() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center gap-3 pointer-events-none"
+            className="flex flex-col items-center gap-3"
           >
-            <div className="text-5xl opacity-30">◈</div>
-            <p className="text-slate-400 text-sm font-medium">
-              Drop files here or{" "}
+            <div className="text-5xl opacity-30 pointer-events-none">◈</div>
+            <p className="text-slate-400 text-sm font-medium pointer-events-none">
+              Drop files or folders here, or{" "}
               <span className="text-violet-400 underline underline-offset-2">click to browse</span>
             </p>
-            <p className="text-slate-600 text-xs">
-              Images · Documents · Audio · Video — 25+ formats
-            </p>
+            <button
+              onClick={handleFolderClick}
+              className="pointer-events-auto text-[10px] text-slate-600 hover:text-slate-300 border border-white/[0.06] hover:border-white/20 rounded-lg px-3 py-1.5 transition-all"
+            >
+              + Add folder
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

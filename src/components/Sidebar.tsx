@@ -20,7 +20,7 @@ export function Sidebar() {
     <aside className="w-60 shrink-0 relative border-r border-white/5">
     <div className="absolute inset-0 overflow-y-auto flex flex-col gap-2 p-3">
 
-      {/* Stats card */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -38,7 +38,7 @@ export function Sidebar() {
         <Stat icon={<Zap size={10} className="text-cyan-500" />} label="Data stripped" value={fmtBytes(savedBytes)} color="text-cyan-400" />
       </motion.div>
 
-      {/* Presets card */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -69,7 +69,7 @@ export function Sidebar() {
         </div>
       </motion.div>
 
-      {/* Recent activity */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

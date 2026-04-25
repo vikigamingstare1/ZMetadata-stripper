@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { useQueueStore } from "../store/useQueueStore";
 import { scoreColor, scoreBg, scoreLabel } from "../lib/sensitivityScore";
+import type { ContextMenuState } from "./ContextMenu";
 import type { QueueFile } from "../types";
 
 const STATUS_STYLE: Record<QueueFile["status"], { pill: string; icon: React.ReactNode; spin?: boolean }> = {
@@ -16,10 +17,21 @@ const STATUS_STYLE: Record<QueueFile["status"], { pill: string; icon: React.Reac
   skipped:    { pill: "bg-slate-600/15 border-slate-600/30 text-slate-500",    icon: <SkipForward size={9} /> },
 };
 
-export function QueueCard({ file }: { file: QueueFile }) {
+export function QueueCard({
+  file,
+  onContextMenu,
+}: {
+  file: QueueFile;
+  onContextMenu: (state: ContextMenuState) => void;
+}) {
   const { activeFileId, setActiveFile, removeFile } = useQueueStore();
   const isActive = activeFileId === file.id;
   const { pill, icon, spin } = STATUS_STYLE[file.status];
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onContextMenu({ x: e.clientX, y: e.clientY, fileId: file.id });
+  };
 
   return (
     <motion.div
@@ -29,11 +41,12 @@ export function QueueCard({ file }: { file: QueueFile }) {
       exit={{ opacity: 0, scale: 0.92 }}
       transition={{ type: "spring", stiffness: 280, damping: 26 }}
       onClick={() => setActiveFile(file.id)}
+      onContextMenu={handleContextMenu}
       className={`relative glass-card p-3 cursor-pointer overflow-hidden select-none ${
         isActive ? "glass-card-active" : ""
       }`}
     >
-      {/* Processing wipe */}
+      {}
       <AnimatePresence>
         {file.status === "processing" && (
           <motion.div
@@ -47,7 +60,7 @@ export function QueueCard({ file }: { file: QueueFile }) {
       </AnimatePresence>
 
       <div className="flex items-center gap-3">
-        {/* Format badge / thumbnail */}
+        {}
         <div
           className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center overflow-hidden"
           style={{ background: "rgba(28,28,48,0.9)" }}
@@ -60,26 +73,26 @@ export function QueueCard({ file }: { file: QueueFile }) {
           )}
         </div>
 
-        {/* Info */}
+        {}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-slate-200 truncate leading-tight mb-1">
             {file.name}
           </p>
           <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Status */}
+            {}
             <span className={`pill text-[9px] gap-1 ${pill}`}>
               <span className={spin ? "animate-spin" : ""}>{icon}</span>
               {file.status}
             </span>
 
-            {/* Sensitivity score */}
+            {}
             {file.sensitivityScore > 0 && (
               <span className={`pill text-[9px] ${scoreBg(file.sensitivityScore)} ${scoreColor(file.sensitivityScore)}`}>
                 {scoreLabel(file.sensitivityScore)} {file.sensitivityScore}
               </span>
             )}
 
-            {/* Bytes saved */}
+            {}
             {file.bytesSaved !== undefined && file.bytesSaved > 0 && (
               <span className="text-[9px] text-emerald-500/70">
                 −{fmtBytes(file.bytesSaved)}
@@ -88,7 +101,7 @@ export function QueueCard({ file }: { file: QueueFile }) {
           </div>
         </div>
 
-        {/* Remove */}
+        {}
         <button
           onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
           className="text-slate-600 hover:text-red-400 transition-colors rounded p-0.5 shrink-0"
@@ -97,7 +110,7 @@ export function QueueCard({ file }: { file: QueueFile }) {
         </button>
       </div>
 
-      {/* Clean flash */}
+      {}
       <AnimatePresence>
         {file.status === "clean" && (
           <motion.div
@@ -109,7 +122,7 @@ export function QueueCard({ file }: { file: QueueFile }) {
         )}
       </AnimatePresence>
 
-      {/* Progress bar */}
+      {}
       {file.status === "processing" && (
         <motion.div
           className="absolute bottom-0 left-0 h-0.5 gradient-accent"

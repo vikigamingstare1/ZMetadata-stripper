@@ -5,7 +5,6 @@ use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 use crate::types::{MetadataCategory, MetadataField, RiskLevel, StripOptions};
 
-// ── PDF ───────────────────────────────────────────────────────────────────────
 
 pub fn inspect_pdf(data: &[u8]) -> Result<Vec<MetadataField>> {
     let doc = Document::load_mem(data).context("Failed to parse PDF")?;
@@ -26,7 +25,7 @@ pub fn inspect_pdf(data: &[u8]) -> Result<Vec<MetadataField>> {
         }
     }
 
-    // Check for XMP stream in catalog
+
     if let Ok(root_ref) = doc.trailer.get(b"Root").and_then(|o| o.as_reference()) {
         if let Ok(Object::Dictionary(cat)) = doc.get_object(root_ref) {
             if cat.has(b"Metadata") {
@@ -57,14 +56,14 @@ pub fn strip_pdf(data: Vec<u8>, opts: &StripOptions) -> Result<Vec<u8>> {
         }
     }
 
-    // Remove document ID from trailer
+
     doc.trailer.remove(b"ID");
 
     let mut out = Vec::new();
     doc.save_to(&mut out).context("Failed to serialize PDF")?;
 
     if opts.pdf_full_rewrite {
-        // Double-pass: reload and re-save to guarantee no incremental update history
+
         let mut doc2 = Document::load_mem(&out).context("Failed to reload PDF")?;
         let mut final_out = Vec::new();
         doc2.save_to(&mut final_out).context("Forensic-safe rewrite failed")?;
@@ -74,7 +73,6 @@ pub fn strip_pdf(data: Vec<u8>, opts: &StripOptions) -> Result<Vec<u8>> {
     Ok(out)
 }
 
-// ── DOCX / XLSX / PPTX — ZIP + XML replacement ───────────────────────────────
 
 const EMPTY_CORE_XML: &str = concat!(
     r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>"#,
@@ -132,11 +130,11 @@ pub fn strip_office(data: Vec<u8>) -> Result<Vec<u8>> {
                     writer.write_all(EMPTY_APP_XML_WORD.as_bytes())?;
                 }
                 "docProps/custom.xml" => {
-                    // Drop custom properties file content
+
                     writer.write_all(b"")?;
                 }
                 "meta.xml" => {
-                    // ODF documents
+
                     writer.write_all(EMPTY_META_XML.as_bytes())?;
                 }
                 _ => {
@@ -153,7 +151,6 @@ pub fn strip_office(data: Vec<u8>) -> Result<Vec<u8>> {
     Ok(buf)
 }
 
-// ── SVG ───────────────────────────────────────────────────────────────────────
 
 pub fn inspect_svg(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
@@ -188,7 +185,7 @@ pub fn strip_svg(data: Vec<u8>) -> Result<Vec<u8>> {
     let mut skip_depth: usize = 0;
     let mut buf = Vec::new();
 
-    // Elements to strip entirely
+
     let strip_elements = [
         b"metadata".as_ref(),
         b"rdf:RDF".as_ref(),
@@ -207,7 +204,7 @@ pub fn strip_svg(data: Vec<u8>) -> Result<Vec<u8>> {
                 } else if strip_elements.contains(&e.name().as_ref()) {
                     skip_depth = 1;
                 } else {
-                    // Strip metadata-related attributes from svg root
+
                     if e.name().as_ref() == b"svg" {
                         let mut clean = e.to_owned();
                         let attrs: Vec<_> = e.attributes()
@@ -256,7 +253,6 @@ pub fn strip_svg(data: Vec<u8>) -> Result<Vec<u8>> {
     Ok(writer.into_inner().into_inner())
 }
 
-// ── RTF ───────────────────────────────────────────────────────────────────────
 
 pub fn inspect_rtf(data: &[u8]) -> Result<Vec<MetadataField>> {
     let mut fields = Vec::new();
@@ -291,11 +287,11 @@ pub fn strip_rtf(data: Vec<u8>) -> Result<Vec<u8>> {
     let text = String::from_utf8_lossy(&data).to_string();
     let mut out = text;
 
-    // Zero out RTF header metadata fields
+
     for tag in [r"\author", r"\company", r"\operator", r"\manager",
                 r"\doccomm", r"\hlinkbase", r"\keywords", r"\subject"] {
         while let Some(idx) = out.find(tag) {
-            // Find end of this control word group
+
             let start = idx + tag.len();
             let end = out[start..].find(|c: char| c == '\\' || c == '}')
                 .map(|i| start + i)
@@ -307,7 +303,6 @@ pub fn strip_rtf(data: Vec<u8>) -> Result<Vec<u8>> {
     Ok(out.into_bytes())
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 fn extract_xml_metadata(xml: &str, source: &str) -> Vec<MetadataField> {
     let mut fields = Vec::new();
