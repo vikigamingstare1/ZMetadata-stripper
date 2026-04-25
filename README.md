@@ -113,7 +113,7 @@ This prevents some platforms (Instagram, X/Twitter) from auto-flagging completel
 ## Installation
 
 > [!WARNING]
-> Do **not** run untrusted binaries. Always download from the [official page](https://zsync.eu/zmetadata-stripper/) and verify the file matches the release hash published there.
+> Do **not** run untrusted binaries. Always download from the [official page](https://zsync.eu/zmetadata-stripper/).
 
 | Platform | Package |
 |---|---|
